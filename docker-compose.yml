@@ -1,0 +1,150 @@
+version: '3.6'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.3 # Pulling exact versions of images instead of "latest" to ensure compatibility
+    hostname: zookeeper
+    container_name: swat-zookeeper # Giving all the containers proper names
+    restart: unless-stopped
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SERVERS: zookeeper:2888:3888
+    networks:
+      - water-treatment-network # Every container connects to the same network within Docker
+
+  kafka: # This Kafka config is from Conduktor (https://github.com/conduktor/kafka-stack-docker-compose) and it's the first one that actually worked after many, many tries
+    image: confluentinc/cp-kafka:7.4.3
+    hostname: kafka
+    container_name: swat-kafka
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+      - "9999:9999"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_OPTS: "-Djava.rmi.server.hostname=kafka -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+    depends_on:
+      - zookeeper
+    networks:
+      - water-treatment-network
+
+  cmak:
+    image: ghcr.io/eshepelyuk/dckr/cmak-3.0.0.5:latest # I couldn't find a non-latest image of CMAK, so this stays as this
+    container_name: swat-cmak
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      ZK_HOSTS: "zookeeper:2181"
+    networks:
+      - water-treatment-network
+
+  spark:
+    image: docker.io/bitnami/spark:3.5
+    container_name: swat-spark
+    restart: unless-stopped
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_USER=spark
+    ports:
+      - '8080:8080'
+    networks:
+      - water-treatment-network
+    volumes:
+        - ./:/swat-change-detection # Mount the project folder so we can run the Spark scripts
+
+  influxdb:
+    image: influxdb:2.7.4
+    container_name: swat-influxdb
+    restart: unless-stopped
+    ports:
+      - 8086:8086
+    environment:
+     - DOCKER_INFLUXDB_INIT_MODE=setup
+     - INFLUXDB_DB=influx
+     - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_ADMIN_USER} # Login details (including the token) are stored in the environment file; this is much more secure
+     - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_ADMIN_PASSWORD} # InfluxDB mandates a password at least 8 characters long
+     - INFLUXDB_ADMIN_USER_TOKEN=${INFLUX_TOKEN}
+     - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG}
+     - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUX_BUCKET}
+    networks:
+      - water-treatment-network
+    volumes:
+      - influxdb-storage:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+
+  telegraf:
+    image: telegraf:1.28.5
+    container_name: swat-telegraf
+    restart: unless-stopped
+    ports:
+      - 8125:8125
+    volumes:
+      - ./config/telegraf.conf:/etc/telegraf/telegraf.conf:rw
+    depends_on:
+      - influxdb
+      - kafka
+    networks:
+      - water-treatment-network
+
+  chronograf:
+    image: chronograf:1.9.0  
+    container_name: swat-chronograf
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    environment:
+      - INFLUXDB_USER=${INFLUX_ADMIN_USER}         
+      - INFLUXDB_PASSWORD=${INFLUX_ADMIN_PASSWORD}
+    volumes:
+      - chronograf-storage:/var/lib/chronograf
+    depends_on:
+      - influxdb
+    networks:
+      - water-treatment-network
+
+  
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: swat-grafana
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD}
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - influxdb
+    networks:
+      - water-treatment-network
+
+volumes:
+  influxdb-storage:
+  influxdb-config:
+  grafana-storage:
+  chronograf-storage:
+
+networks:
+  water-treatment-network:
+    driver: bridge  
