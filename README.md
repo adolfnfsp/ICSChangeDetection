@@ -1,5 +1,5 @@
-# Comparative analysis of data distribution-based change detection methods in SWaT
-### Instructions for the entire pipeline
+# Comprehensive analysis of statistical window-based change detection methods in ICS
+### Instructions for the utilized pipeline
 #### Initialization
 1. Run ```docker-compose up influxdb``` in the root folder to start the InfluxDB container. Open its GUI at ```localhost:8086``` and sign in with the credentials supplied in the .env file (user: _admin_, password: _admin1234_).
 2. Head to the API Tokens page and generate an all-access API token. Copy this token and insert it into the .env and config/telegraf.conf files on the lines where it says _"insert\_token_here"_. Keep the token saved somewhere, as it will also be needed for Grafana.
@@ -36,7 +36,7 @@
 13. You can also check out the visualizations we made using these tools in the folder with the same name.
 
 ### Contributions:
-**Máté:** docker-compose file, Kafka data ingestion as stream, Kafka and Spark connection, Spark data transformation, TIG stack (Telegraf, InfluxDB, Grafana) setup and configuration, change detection algorithms (kdq-tree, PCA-CD, KS-WIN, 1-class-SVM), batch training, detection results tracking and graphing, readme instructions, report, presentation
+**Adolf Kamuzora:** docker-compose file, Kafka data ingestion as stream, Kafka and Spark connection, Spark data transformation, TIG stack (Telegraf, InfluxDB, Grafana) setup and configuration, change detection algorithms (kdq-tree, PCA-CD, KS-WIN, 1-class-SVM), batch training, detection results tracking and graphing, ReadMe instructions, research paper.
 
-**Vrushali:** Kafka and Spark connection, Spark sliding window aggregation, change detection algorithms(CUSUM, CvM, RDR), Batch training, Chronograf setup and configuration, Chronograf dashboard, InfluxDB visualizations, report, presentation
+**Joseph Haule:** Kafka and Spark connection, Spark sliding window aggregation, change detection algorithms(CUSUM, CvM, RDR), Batch training, Chronograf setup and configuration, Chronograf dashboard, InfluxDB visualizations, ReadMe instructions, research paper.
 
