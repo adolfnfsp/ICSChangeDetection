@@ -1,3 +1,4 @@
+# The Cumulative Sum method
 import json
 import pandas as pd
 from confluent_kafka import Consumer

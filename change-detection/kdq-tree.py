@@ -1,4 +1,4 @@
-# Test consumer to receive SWaT data from the producer
+# Test consumer to receive SWaT data from the producer - for kdq-tree
 from confluent_kafka import Consumer
 import json
 import pandas as pd

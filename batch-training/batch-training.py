@@ -4,7 +4,7 @@ from sklearn.tree import DecisionTreeClassifier
 import os
 from dotenv import load_dotenv
 
-load_dotenv() # Load environmental variables from .env file for security
+load_dotenv() # Load environmental variables from .env file for security purposes
 
 # InfluxDB configuration
 INFLUXDB_HOST = 'localhost'

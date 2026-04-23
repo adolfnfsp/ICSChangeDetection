@@ -1,4 +1,4 @@
-# Utilities functions used by our change detection scripts
+# Utilities and functions used by our change detection scripts
 from confluent_kafka import TopicPartition
 from confluent_kafka.admin import AdminClient
 from datetime import datetime
