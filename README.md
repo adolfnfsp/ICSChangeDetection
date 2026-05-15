@@ -35,8 +35,8 @@
 12. Open Chronograf at  ```localhost:8888```. Login with the same credentials as you have used for Grafana. During setup, add ```http://localhost:8086``` (_not_ influxdb:8086!) as the InfluxDB URL, then select 'InfluxDB v2 Auth'. Enter your InfluxDB token and organization name (same as in Grafana) and then click 'Add connection'. You will be able to create Chronograf dashboards after selecting InfluxDB from the dropdown menu.
 13. You can also check out the visualizations we made using these tools in the folder with the same name.
 
-### Contributions:
-**Adolf Kamuzora:** docker-compose file, Kafka data ingestion as stream, Kafka and Spark connection, Spark data transformation, TIG stack (Telegraf, InfluxDB, Grafana) setup and configuration, change detection algorithms (kdq-tree, PCA-CD, KS-WIN, 1-class-SVM), batch training, detection results tracking and graphing, ReadMe instructions, research paper.
+<!-- ### Contributions:
+**Adolf Kamuzora:** docker-compose file, Kafka data ingestion as stream, Kafka and Spark connection, Spark data transformation, TIG stack (Telegraf, InfluxDB, Grafana) setup and configuration, change detection algorithms (kdq-tree, PCA-CD, KS-WIN, 1-class-SVM), batch training, detection results tracking and graphing, ReadMe instructions.
 
-**Joseph Haule:** Kafka and Spark connection, Spark sliding window aggregation, change detection algorithms(CUSUM, CvM, RDR), Batch training, Chronograf setup and configuration, Chronograf dashboard, InfluxDB visualizations, ReadMe instructions, research paper.
+**Joseph Haule:** Kafka and Spark connection, Spark sliding window aggregation, change detection algorithms(CUSUM, CvM, RDR), Batch training, Chronograf setup and configuration, Chronograf dashboard, InfluxDB visualizations, ReadMe instructions. -->
 
